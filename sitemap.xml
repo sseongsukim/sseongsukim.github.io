@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+
+
+<url>
+  <loc>https://sseongsukim.github.io/</loc>
+  <lastmod>2024-03-06T10:24:25+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://sseongsukim.github.io/data/JonBarron-CV.pdf</loc>
+  <lastmod>2024-03-06T10:24:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sseongsukim.github.io/data/JonBarron-bio.txt</loc>
+  <lastmod>2024-03-06T10:24:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sseongsukim.github.io/data/BarronCVPR2019_reviews.txt</loc>
+  <lastmod>2024-03-06T10:24:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sseongsukim.github.io/data/BarronPooleECCV2016_reviews.txt</loc>
+  <lastmod>2024-03-06T10:24:25+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+
+
+</urlset>
