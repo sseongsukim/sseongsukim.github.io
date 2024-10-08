@@ -17,6 +17,7 @@
     <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
       <tr style="padding:0px">
         <td style="padding:0px">
+
           <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
             <tr style="padding:0px">
               <td style="padding:2.5%;width:63%;vertical-align:middle">
@@ -24,8 +25,11 @@
                   Seongsu Kim
                 </p>
                 <p>
-                  I'm a MS student in the Control and Optimization Lab at Hanyang University, advised by <a href="https://junmoony.github.io/index.html">Jun Moon</a>.
-                  I'm currently working on reinforcement learning and imitation learning.
+                  Hi! I'm a MS student in the Control and Optimization Lab at Hanyang University, advised by <a href="https://junmoony.github.io/index.html">Jun Moon</a>.
+                  I'm passionate about advancing the development of more cutting-edge reinforcement learning (RL) and imitation learning algorithms.
+                  My focus lies in designing general-purpose agents that effectively utilize data to enhance decision-making process.
+                  To achieve this, I'm working on offline RL, goal-conditioned RL, and sequence modeling.
+
                 </p>
                 <p style="text-align:center">
                   <a href="mailto:kimseongsu@hanyang.ac.kr">Email</a>&nbsp;/&nbsp;
@@ -38,23 +42,90 @@
                 </a>
               </td>
             </tr>
-          </tbody></table>
+          </tbody>
+          </table>
+
           <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
             <tbody>
               <td style="padding:2.5%;width:100%;vertical-align: middle">
                 <h2> Research </h2>
-                <p>
-                  My research goal is create robots capable of naturally blending with humans and solving complex tasks for humans.
-                  Specifically, I am interested in training challenging robots, such as dexterous manipulators and humanoids.
-                </p>
-                <p>
-                  To achieve these goals, I focus on offline RL by 1) using weakly-labeled or unlabeled datasets to enhance data efficiency,
-                  and 2) training human-like behaviors through human teleoperation.
-                </p>
               </td>
             </tbody>
           </table>
-          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <tbody>
+
+            <tr onmouseout="first_research_stop()" onmouseover="first_research_start()">
+              <td style="padding:20px;width:25%;vertical-align:middle">
+                <div class="one">
+                  <div class="two" id='first_research_image'>
+                    <video  width=100% muted autoplay loop>
+                      <source src="videos/ictc.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:20px;width:75%;vertical-align:middle">
+                <span class="papertitle">
+                  Offline Goal-conditioned Model-based Reinforcement Learning in Pixel-based Environment
+                </span>
+                <br>
+                  <strong>Seongsu Kim</strong>,
+                  <a href="https://junmoony.github.io/index.html">Jun Moon</a>
+                <br>
+                <a href="https://ictc.org/">ICTC</a>, 2024
+                <br>
+                <a href="https://drive.google.com/file/d/1lYLdrsnNWzx0pXpPpyQNhSjIBJ51U_VZ/view?usp=drive_link">paper</a>
+                <p>
+                  Presenting the combination of offline goal-conditioned RL with model-based RL.
+                  The proposed approach demonstrates performance improvements in environments with image input.
+                </p>
+              </td>
+            </tr>
+
+            </tbody>
+          </table>
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <tbody>
+              <tr>
+                <td style="padding:2.5%; width:50%; vertical-align: middle">
+                    <h2 style="margin-bottom: 10px;">Project</h2> <!-- Reduced bottom margin -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <tbody>
+            <tr onmouseout="project_first_stop()" onmouseover="project_first_start()">
+              <td style="padding:20px;width:25%;;vertical-align:middle">
+                <div class="one">
+                  <div class="two" id='project_first_image'>
+                    <video  width=100% height="auto" muted autoplay loop>
+                      <source src="videos/dp.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:20px;width:75%;vertical-align:top">
+                <span class="papertitle">
+                  Multimodal Diffusion Policy Leveraging Human-hand Teleoperation Data
+                </span>
+                <br>
+                  Work with <a href="https://www.keti.re.kr/main/main.php">KETI</a>
+                <br>
+                Creating a human-hand teleoperation dataset using <a href="https://github.com/Dingry/dex-retargeting">dex-retargeting</a> enabled the development of an agent
+                capable of replicating human hand actions, with a multimodal diffusion policy trained using both tactile sensor and image data.
+
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
+            <tbody>
             <tr>
               <td style="padding:0px">
                 <br>
@@ -63,7 +134,10 @@
                 </p>
               </td>
             </tr>
-          </tbody></table>
+          </tbody>
+          </table>
+
+
         </td>
       </tr>
     </table>
