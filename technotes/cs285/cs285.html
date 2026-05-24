@@ -1,0 +1,144 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>CS285: Deep Reinforcement Learning | TechNotes</title>
+
+    <meta name="author" content="Seongsu Kim">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="../../images/logo_su.png" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+  </head>
+
+  <body class="technote-page">
+    <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+      <tr style="padding:0px">
+        <td style="padding:0px">
+          <p class="technote-toplink">
+            <a href="../technotes.html">&larr; TechNotes</a>
+          </p>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr style="padding:0px">
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <p class="name" style="text-align:center;">
+                  CS285: Deep Reinforcement Learning
+                </p>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <div class="technote-intro">
+                  <p>
+                    Notes from UC Berkeley's Deep Reinforcement Learning lecture by Professor Sergey Levine.
+                  </p>
+                  <p>
+                    These notes are based on materials from
+                    <a href="https://www.youtube.com/playlist?list=PL_iWQOsE6TfVYGEGiAOMaOzzv41Jfm_Ps">CS 285, 2023</a>
+                    and <a href="https://rail.eecs.berkeley.edu/deeprlcourse/">CS 185/285</a>.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <div class="course-roadmap">
+                  <a class="roadmap-item" href="1_imitation_learning/imitation_learning.html">
+                    <span class="roadmap-number">01</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Imitation Learning</span>
+                      <span class="roadmap-summary">Analyze the Distributional Shift Problem and Implement Behavior Cloning Algorithms.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="2_policy_gradient/policy_gradient.html">
+                    <span class="roadmap-number">02</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Policy Gradient</span>
+                      <span class="roadmap-summary">Direct policy optimization through likelihood-ratio gradients, variance reduction, and natural policy gradients.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="3_actor_ciritic_value_based_rl/actor_critic_value_based_rl.html">
+                    <span class="roadmap-number">03</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Actor-critic &amp; Value-based RL</span>
+                      <span class="roadmap-summary">Value functions, Q-learning, actor-critic methods, advantage estimation, and bootstrapping.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="4_control_as_variational_inference/control_as_variational_inference.html">
+                    <span class="roadmap-number">04</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Control as Variational Inference</span>
+                      <span class="roadmap-summary">A probabilistic view of control, maximum entropy RL, and inference-based policy optimization.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="5_rl_with_llms/rl_with_llms.html">
+                    <span class="roadmap-number">05</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">RL with LLMs</span>
+                      <span class="roadmap-summary">Reinforcement learning for language models, reward modeling, preference optimization, and alignment.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="6_model_based_rl/model_based_rl.html">
+                    <span class="roadmap-number">06</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Model-based RL</span>
+                      <span class="roadmap-summary">Learning dynamics models, planning with rollouts, model predictive control, and compounding model error.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="7_offline_rl/offline_rl.html">
+                    <span class="roadmap-number">07</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Offline RL</span>
+                      <span class="roadmap-summary">Learning from fixed datasets under distribution shift, conservative objectives, and behavior constraints.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="8_rl_theory/rl_theory.html">
+                    <span class="roadmap-number">08</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">RL Theory</span>
+                      <span class="roadmap-summary">Foundational guarantees, Bellman operators, policy improvement, sample complexity, and regret.</span>
+                    </span>
+                  </a>
+
+                  <a class="roadmap-item" href="9_exploration/exploration.html">
+                    <span class="roadmap-number">09</span>
+                    <span class="roadmap-content">
+                      <span class="roadmap-title">Exploration</span>
+                      <span class="roadmap-summary">Exploration strategies, intrinsic motivation, optimism, uncertainty, and information gain.</span>
+                    </span>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:0px">
+                <br>
+                <p style="text-align:right;font-size:small;">
+                  Website template from <a href="https://github.com/jonbarron/jonbarron_website">Jon Barron</a>
+                </p>
+              </td>
+            </tr>
+          </tbody></table>
+
+        </td>
+      </tr>
+    </tbody></table>
+  </body>
+</html>

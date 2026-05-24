@@ -11,26 +11,19 @@
     <link rel="stylesheet" type="text/css" href="../stylesheet.css">
   </head>
 
-  <body>
+  <body class="technote-page">
     <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
       <tr style="padding:0px">
         <td style="padding:0px">
+          <p class="technote-authorlink">
+            <a href="../">Written by Seongsu Kim &rarr;</a>
+          </p>
 
           <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
             <tr style="padding:0px">
               <td style="padding:2.5%;width:100%;vertical-align:middle">
                 <p class="name" style="text-align:center;">
                   TechNotes
-                </p>
-                <p style="text-align:center">
-                  <a href="../">Home</a>&nbsp;/&nbsp;
-                  <a href="mailto:kimseongsu@hanyang.ac.kr">Email</a>&nbsp;/&nbsp;
-                  <a href="https://github.com/sseongsukim/">Github</a>&nbsp;/&nbsp;
-                  <a href="../data/CV.pdf">CV</a>
-                </p>
-                <p>
-                  Notes on reinforcement learning, robot learning, and implementation details from courses, papers, and projects.
-                  This page collects study notes and engineering logs that are useful for building research intuition and reproducible code.
                 </p>
               </td>
             </tr>
@@ -39,34 +32,48 @@
           <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
             <tr>
               <td style="padding:2.5%;width:100%;vertical-align:middle">
-                <h2>Reinforcement Learning</h2>
-                <ul class="note-list">
-                  <li><span class="note-title">Offline Reinforcement Learning</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">Goal-conditioned Reinforcement Learning</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">Policy Gradient and Actor-Critic Methods</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">World Models for Control</span> <span class="note-status">coming soon</span></li>
-                </ul>
-              </td>
-            </tr>
+                <div class="technote-tags" aria-label="Filter TechNotes by topic">
+                  <button class="tag-filter active" type="button" data-tag="all">All</button>
+                  <button class="tag-filter" type="button" data-tag="Generative Models">Generative Models</button>
+                  <button class="tag-filter" type="button" data-tag="Reinforcement Learning">Reinforcement Learning</button>
+                  <button class="tag-filter" type="button" data-tag="Robot">Robot</button>
+                  <button class="tag-filter" type="button" data-tag="Courses">Courses</button>
+                </div>
 
-            <tr>
-              <td style="padding:2.5%;width:100%;vertical-align:middle">
-                <h2>Courses</h2>
-                <ul class="note-list">
-                  <li><span class="note-title">CS285: Deep Reinforcement Learning</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">CS185: Computer Vision and Related Notes</span> <span class="note-status">coming soon</span></li>
-                </ul>
-              </td>
-            </tr>
+                <div class="technote-grid">
+                  <a class="technote-card" href="RACE/race.html" data-tags="Robot">
+                    <div class="technote-card-tags">
+                      <span>Robot</span>
+                    </div>
+                    <h2>RACE: Time Optimal Execution of Action Chunk Policies Beyond Demonstration Speed</h2>
+                    <p class="technote-summary">Paper note on time-optimal execution for action chunk policies in robotics.</p>
+                  </a>
 
-            <tr>
-              <td style="padding:2.5%;width:100%;vertical-align:middle">
-                <h2>Implementation Notes</h2>
-                <ul class="note-list">
-                  <li><span class="note-title">Debugging RL Training Loops</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">Dataset Handling for Offline RL</span> <span class="note-status">coming soon</span></li>
-                  <li><span class="note-title">Simulation and Robot Learning Experiments</span> <span class="note-status">coming soon</span></li>
-                </ul>
+                  <article class="technote-card" data-tags="Generative Models">
+                    <div class="technote-card-tags">
+                      <span>Generative Models</span>
+                    </div>
+                    <h2>Adjoint Matching: Fine-tuning Flow and Diffusion Generative Models with Memoryless Stochastic Optimal Control</h2>
+                    <p class="technote-summary">Paper note on connecting diffusion or flow fine-tuning with stochastic optimal control.</p>
+                  </article>
+
+                  <a class="technote-card" href="fql/fql.html" data-tags="Reinforcement Learning">
+                    <div class="technote-card-tags">
+                      <span>Reinforcement Learning</span>
+                    </div>
+                    <h2>Flow Q-Learning</h2>
+                    <p class="technote-summary">Paper note on flow-based policy learning with Q-learning objectives.</p>
+                  </a>
+
+                  <a class="technote-card" href="cs285/cs285.html" data-tags="Courses Reinforcement Learning">
+                    <div class="technote-card-tags">
+                      <span>Courses</span>
+                      <span>Reinforcement Learning</span>
+                    </div>
+                    <h2>CS285: Deep Reinforcement Learning</h2>
+                    <p class="technote-summary">Notes from UC Berkeley's Deep Reinforcement Learning lecture by Professor Sergey Levine.</p>
+                  </a>
+                </div>
               </td>
             </tr>
           </tbody></table>
@@ -75,7 +82,7 @@
             <tr>
               <td style="padding:0px">
                 <br>
-                <p style="text-align:center;font-size:small;">
+                <p style="text-align:right;font-size:small;">
                   Website template from <a href="https://github.com/jonbarron/jonbarron_website">Jon Barron</a>
                 </p>
               </td>
@@ -85,5 +92,43 @@
         </td>
       </tr>
     </tbody></table>
+    <script>
+      const filters = Array.from(document.querySelectorAll('.tag-filter'));
+      const cards = Array.from(document.querySelectorAll('.technote-card'));
+
+      function selectedTags() {
+        return filters
+          .filter((button) => button.classList.contains('active') && button.dataset.tag !== 'all')
+          .map((button) => button.dataset.tag);
+      }
+
+      function updateNotes() {
+        const activeTags = selectedTags();
+
+        cards.forEach((card) => {
+          const cardTags = card.dataset.tags || '';
+          card.hidden = activeTags.length > 0 && !activeTags.some((tag) => cardTags.includes(tag));
+        });
+      }
+
+      filters.forEach((button) => {
+        button.addEventListener('click', () => {
+          if (button.dataset.tag === 'all') {
+            filters.forEach((filter) => filter.classList.remove('active'));
+            button.classList.add('active');
+          } else {
+            const allButton = filters.find((filter) => filter.dataset.tag === 'all');
+            allButton.classList.remove('active');
+            button.classList.toggle('active');
+
+            if (selectedTags().length === 0) {
+              allButton.classList.add('active');
+            }
+          }
+
+          updateNotes();
+        });
+      });
+    </script>
   </body>
 </html>

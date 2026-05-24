@@ -1,0 +1,699 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Imitation Learning | CS285</title>
+    <meta name="author" content="Seongsu Kim">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="../../../images/logo_su.png" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="../../../stylesheet.css">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+  <body class="technote-page">
+    <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+      <tr style="padding:0px">
+        <td style="padding:0px">
+          <p class="technote-toplink">
+            <a href="../cs285.html">&larr; CS285</a>
+          </p>
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr style="padding:0px">
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <p class="name" style="text-align:center;">Imitation Learning</p>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <article class="note-content">
+                  <div class="note-callout">
+                    <span class="note-callout-label">Overview</span>
+                    <p>
+                      In this page, I discuss the distributional shift problem in Behavior Cloning
+                      and analyze its effects from a theoretical perspective.
+                      I also describe the implementation of the Behavior Cloning based on the code provided in
+                      <a href="https://github.com/berkeleydeeprlcourse/homework_spring2026/tree/main">CS 185/285</a>.
+                    </p>
+                  </div>
+
+                  <h2>Behavior Cloning</h2>
+
+                  <p>
+                    Behavior cloning trains a policy $\pi_\theta (a_t|s_t)$ using supervised learning on demonstration data $\mathcal{D}=\{s_0, a_0, \cdots, s_T, a_T \}_{i=1}^N$ 
+                    to maximize the likelihood of selecting the same actions as the expert policy $\pi^* (s_t)$ under the demonstrated states $p_{\text{data}}(s_t)$.
+                  </p>
+
+                  <div class="equation-box">
+                    <!-- <div class="equation-label">Behavior Cloning Objective</div> -->
+                    $$
+                    \begin{aligned}
+                    \max_{\theta}
+                    \mathbb{E}_{s_t \sim p_{\mathrm{data}}(s_t)}
+                    \left[
+                      \log \pi_{\theta}(a_t = \pi^*(s_t) \mid s_t)
+                    \right]
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    However, during deployment, the states visited by the policy $p_{\pi_\theta}(s_t)$ differ from the demonstrated states
+                    used for training, resulting in a <strong>Distributional Shift</strong>.
+                  </p>
+
+                  <h2>Distributional Shift</h2>
+                  <p>
+                    For theoretically quantifying how bad distributional shift can be, we first define a cost function as follow:
+                  </p>
+
+                  
+                  $$
+                    \begin{aligned}
+                    c(s_t, a_t)
+                    =
+                    \begin{cases}
+                    0 & \text{if } a_t = \pi^*(s_t), \\
+                    1 & \text{otherwise}.
+                    \end{cases}
+                    \end{aligned}
+                  $$
+
+                  <p>
+                    This means that we measure the "mistakes" of the learned policy by assigning a cost of 0 
+                    when the selected action matches the expert action and 1 otherwise. Given the state $s_t$, the expected cost 
+                    at a single time step is:
+                  </p>
+
+                  
+                  $$
+                    \begin{aligned}
+                    \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                    \left[c(s_t,a_t)\right] = \sum_{a_t}\pi_\theta(a_t|s_t)\cdot c(s_t,a_t) =
+                    \pi_\theta(a_t\ne \pi^*(s_t)|s_t)
+                    \end{aligned}
+                  $$
+
+                  <p>
+                    We assume that the probability of the learned policy making mistakes on states sampled from 
+                    the training distribution $p_{\text{train}}(s_t)$ is at most $\epsilon$
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \mathbb{E}_{s_t\sim p_{\text{train}}(s_t)}
+                    \left[\pi_\theta(a_t\ne\pi^*(s_t)|s_t)\right] \leq \epsilon
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    To understand how policy errors propagate over time, we evaluate the <em>total expected number of cost</em>
+                    over a trajectory of horizon $H$.
+                  </p>
+                  
+                  $$
+                    \begin{aligned}
+                    \sum_{t=1}^H \mathbb{E}_{a_t\sim \pi_\theta(a_t|s_t), s_t\sim p_{\pi_\theta}(s_t)}
+                    \left[c(s_t,a_t)\right]
+                    \end{aligned}
+                  $$
+
+                  <p>
+                    Here, $s_t$ is sampled from the policy-induced distribution $p_{\pi_\theta}(s_t)$, not from the training
+                    distribution. In other words, the expected cost is measured along trajectories generated by the learned policy.
+                    In oder to derive the upper bound on the cumulative expected mistakes, we first introduce the <strong>State Distribution Decomposition</strong>
+                    and the <strong>Total Variation Divergence</strong>.
+                  </p>
+
+                  <h2>State Distribution Decomposition</h2>
+
+                  <p>
+                    To derive the upper bound on the cumulative expected mistakes, we first decompose the state distribution
+                     $p_{\pi_{\theta}}(s_t)$ induced by the learned policy. At each time step, 
+                     the state distribution can be divided into two possible cases:
+                  </p>
+
+                  <ol>
+                    <li>
+                      The policy has not made any mistakes up to time step $t$, so the visited states still follow $p_{\text{train}}(s_t)$.
+                    </li>
+                    <li>
+                      The policy has made at least one mistake before time step $t$, causing the trajectory to move into $p_{\text{mistake}}(s_t)$.
+                    </li>
+                  </ol>
+
+                  <p>
+                    Using these two cases, the state distribution induced by the $\pi_\theta(a_t|s_t)$ can be expressed as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    p_{\pi_\theta}(s_t)=(1-\epsilon)^t p_{\text{train}}(s_t) + (1-(1-\epsilon)^t)p_{\text{mistake}}(s_t)
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    where $(1-\epsilon)^t$ represents the probability that the policy follows the expert trajectory for $t$
+                    steps without making any mistakes.
+                  </p>
+
+                  <h2>Total Variation Divergence</h2>
+
+                  <p>
+                    <strong>Total Variation Divergence</strong> measures how different two distributions are:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    D_{\text{TV}}(p,q)=\frac{1}{2}\sum_x |p(x)-q(x)|\leq 1
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    By using the Total Variation Divergence, we now compute how far the $p_{\pi_\theta}$ deviates from $p_{\text{train}}$:
+                  </p>
+
+                  $$
+                  \begin{aligned}
+                  D_{\text{TV}}(p_{\text{train}}, p_{\pi_\theta})
+                  &=
+                  \frac{1}{2}\sum_{s_t}
+                  \left|p_{\text{train}}(s_t)-p_{\pi_\theta}(s_t)\right| \\
+                  &=
+                  \frac{1}{2}\sum_{s_t}
+                  \left|
+                  p_{\text{train}}(s_t)
+                  -(1-\epsilon)^t p_{\text{train}}(s_t)
+                  -(1-(1-\epsilon)^t)p_{\text{mistake}}(s_t)
+                  \right| \\
+                  &=
+                  \frac{1}{2}\sum_{s_t}
+                  \left|
+                  (1-(1-\epsilon)^t)p_{\text{train}}(s_t)
+                  -(1-(1-\epsilon)^t)p_{\text{mistake}}(s_t)
+                  \right| \\
+                  &=
+                  (1-(1-\epsilon)^t)
+                  \frac{1}{2}\sum_{s_t}
+                  \left|p_{\text{train}}(s_t)-p_{\text{mistake}}(s_t)\right| \\
+                  &\leq
+                  1-(1-\epsilon)^t.
+                  \end{aligned}
+                  $$
+
+                  <p>
+                    To simplify this expression, we can use the following inequality for any $\epsilon \in [0,1]$:
+                  </p>
+
+                  $$
+                  (1-\epsilon)^t \geq 1-\epsilon t
+                  \quad\Longrightarrow\quad
+                  1-(1-\epsilon)^t \leq \epsilon t.
+                  $$
+
+                  <p>
+                    This follows from Bernoulli's inequality, which says that $(1+x)^n \geq 1+nx$, whenever $x \geq -1$.
+                    By setting $x=-\epsilon$, we get $(1-\epsilon)^t \geq 1-\epsilon t$.
+                  </p>
+
+                  <div class="result-callout">
+                    <p>
+                      Therefore, the distance between the learned policy's state distribution and the training distribution is bounded by
+                    </p>
+                    $$
+                    D_{\text{TV}}(p_{\text{train}}, p_{\pi_\theta}) \leq \epsilon t.
+                    $$
+                    <p>
+                      This shows that the distributional mismatch can grow <strong>linearly</strong> with time.
+                    </p>
+                  </div>
+
+                  <h2>Bounding the Total Cost</h2>
+
+                  <p>
+                    We now return to the cumulative expected cost under the states generated by the learned policy.
+                    The goal is to separate the part that comes from states in $p_{\text{train}}(s_t)$ from the part caused by
+                    the shift to $p_{\pi_\theta}(s_t)$ by adding and subtracting $p_{\text{train}}(s_t)$ inside the state distribution term.
+                  </p>
+
+                  $$
+                  \begin{aligned}
+                  &\sum_{t=1}^{H}
+                  \mathbb{E}_{s_t\sim p_{\pi_\theta}(s_t)}
+                  \left[
+                    \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                    [c(s_t,a_t)]
+                  \right] \\
+                  &=
+                  \sum_{t=1}^{H}
+                  \sum_{s_t}
+                  \left(p_{\text{train}}(s_t)+p_{\pi_\theta}(s_t)-p_{\text{train}}(s_t)\right)
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)] \\
+                  &=
+                  \sum_{t=1}^{H}
+                  \left[
+                  \underbrace{
+                  \sum_{s_t}
+                  p_{\text{train}}(s_t)
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)]
+                  }_{\text{training-distribution error}}
+                  +
+                  \underbrace{
+                  \sum_{s_t}
+                  \left(p_{\pi_\theta}(s_t)-p_{\text{train}}(s_t)\right)
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)]
+                  }_{\text{error from distributional shift}}
+                  \right].
+                  \end{aligned}
+                  $$
+
+                  <p>
+                    The first term is bounded by the earlier mistake-probability condition: on states sampled from the training distribution,
+                    the learned policy makes a mistake with probability at most $\epsilon$.
+                  </p>
+
+                  $$
+                  \sum_{s_t}
+                  p_{\text{train}}(s_t)
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)]
+                  \leq \epsilon.
+                  $$
+
+                  <p>
+                    The second term measures the additional cost caused by visiting states whose distribution differs from the
+                    training data. Since $c(s_t,a_t)\in[0,1]$, this term can be bounded using Total Variation Distance.
+                  </p>
+
+                  $$
+                  \begin{aligned}
+                  \text{Term B}
+                  &=
+                  \sum_{s_t}
+                  \left(p_{\pi_\theta}(s_t)-p_{\text{train}}(s_t)\right)
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)] \\
+                  &\leq
+                  \sum_{s_t}
+                  \left|p_{\pi_\theta}(s_t)-p_{\text{train}}(s_t)\right|
+                  \cdot
+                  \underbrace{
+                  \mathbb{E}_{a_t\sim\pi_\theta(a_t|s_t)}
+                  [c(s_t,a_t)]
+                  }_{\leq 1} \\
+                  &\leq
+                  \sum_{s_t}
+                  \left|p_{\pi_\theta}(s_t)-p_{\text{train}}(s_t)\right| \\
+                  &=
+                  2D_{\text{TV}}(p_{\text{train}},p_{\pi_\theta}) \\
+                  &\leq 2\epsilon t.
+                  \end{aligned}
+                  $$
+
+                  <p>
+                    Combining the training-distribution error and the error from distributional shift gives the following upper bound:
+                  </p>
+
+                  $$
+                  \begin{aligned}
+                  \sum_{t=1}^{H}
+                  \mathbb{E}[c(s_t,a_t)]
+                  &\leq
+                  \sum_{t=1}^{H}
+                  \left(\epsilon + 2\epsilon t\right) \\
+                  &=
+                  \epsilon H
+                  +2\epsilon\sum_{t=1}^{H}t \\
+                  &=
+                  \epsilon H
+                  +\epsilon H(H+1) \\
+                  &=
+                  O(\epsilon H^2).
+                  \end{aligned}
+                  $$
+
+                  <div class="result-callout">
+                    <span class="result-callout-label">Main Result</span>
+                    <p>
+                      The expected total number of mistakes scales as
+                      $\boldsymbol{O(\epsilon H^2)}$, which is quadratic in the horizon $H$.
+                    </p>
+                  </div>
+
+                  <h2>Imitation Learning Implementation</h2>
+
+                  <figure class="note-figure">
+                    <img src="PushT.png" alt="Push-T imitation learning environment showing a point agent pushing a T-shaped block toward a target pose.">
+                  </figure>
+
+                  <p>
+                    This implementation is based on
+                    <a href="https://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw1.pdf">CS185/285 Homework 1</a>,
+                    which studies imitation learning in the Push-T environment with action chunk policies.
+                    The code I implemented is available in my
+                    <a href="https://github.com/sseongsukim/homework_spring2026/tree/main/hw1">Homework 1 repository</a>.
+                    The code is organized around the following five stages.
+                  </p>
+
+                  <ol class="pipeline-strip pipeline-strip-compact" aria-label="Imitation learning training pipeline">
+                    <li>
+                      <a href="#data-pipeline">
+                        <span class="pipeline-step">Dataset Setup</span>
+                        <span class="pipeline-note">Push-T data + chunk batches</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#normalization">
+                        <span class="pipeline-step">Normalize Dataset</span>
+                        <span class="pipeline-note">observation/action scales</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#policy-setup">
+                        <span class="pipeline-step">Policy Setup</span>
+                        <span class="pipeline-note">MSE or flow policy</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#policy-training">
+                        <span class="pipeline-step">Policy Training</span>
+                        <span class="pipeline-note">loss + optimizer step</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a href="#evaluation">
+                        <span class="pipeline-step">Evaluation</span>
+                        <span class="pipeline-note">rollout reward</span>
+                      </a>
+                    </li>
+                  </ol>
+
+                  <h3 id="data-pipeline">Dataset Setup</h3>
+                  <p>
+                    The dataset setup uses the Push-T data provided by the
+                    <a href="https://diffusion-policy.cs.columbia.edu/">Diffusion Policy</a> project. The dataset
+                    contains three keys: <code>states</code>, <code>actions</code>, and <code>episode_ends</code>.
+                    Here, <code>episode_ends</code> stores the indices where each trajectory ends.
+                  </p>
+
+                  <p>
+                    Since the policies predict action chunks, a training example is not just a single
+                    state-action pair. Instead, each sample pairs the current observation $o_t$ with the next
+                    $K$ expert actions, written as $a_{t:t+K}$. In the code, <code>build_valid_indices</code>
+                    chooses only the starting times whose full action chunk remains inside the same episode.
+                    This prevents a batch from accidentally joining the end of one trajectory with the beginning
+                    of another.
+                  </p>
+
+                  <div class="chunk-diagram" aria-label="Action chunk dataset construction">
+                    <div class="chunk-row state-row">
+                      <span class="chunk-label">observation</span>
+                      <span class="chunk-cell active">$o_t$</span>
+                      <span class="chunk-cell muted">$o_{t+1}$</span>
+                      <span class="chunk-cell muted">$o_{t+2}$</span>
+                      <span class="chunk-cell muted">...</span>
+                      <span class="chunk-cell muted">$o_{t+K-1}$</span>
+                    </div>
+                    <div class="chunk-arrow">paired with</div>
+                    <div class="chunk-row action-row">
+                      <span class="chunk-label">target chunk</span>
+                      <span class="chunk-cell">$a_t$</span>
+                      <span class="chunk-cell">$a_{t+1}$</span>
+                      <span class="chunk-cell">$a_{t+2}$</span>
+                      <span class="chunk-cell">...</span>
+                      <span class="chunk-cell">$a_{t+K-1}$</span>
+                    </div>
+                  </div>
+                  <p class="chunk-caption">
+                    One dataset item returns <code>(state, action_chunk)</code>, where
+                    <code>state = states[t]</code> and <code>action_chunk = actions[t:t+chunk_size]</code>.
+                  </p>
+
+                  <h3 id="normalization">Normalize Dataset</h3>
+                  <p>
+                    Before training, a <code>Normalizer</code> is built from the full dataset. It computes
+                    feature-wise means and standard deviations for both <code>states</code> and
+                    <code>actions</code>, then standardizes them so that each feature has approximately zero
+                    mean and unit variance over the dataset.
+                  </p>
+
+                  <div class="normalizer-timeline" aria-label="When normalization is applied">
+                    <div>
+                      <span class="normalizer-stage">Training batch</span>
+                      <p>
+                        <code>PushtChunkDataset</code> returns normalized observations and normalized action
+                        chunks, so the policy learns to predict actions in normalized coordinates.
+                      </p>
+                      <div class="normalizer-equation">
+                        $$
+                        \hat{s}_t=\frac{s_t-\mu_s}{\sigma_s},
+                        \qquad
+                        \hat{a}_{t:t+K}=\frac{a_{t:t+K}-\mu_a}{\sigma_a}.
+                        $$
+                      </div>
+                    </div>
+                    <div>
+                      <span class="normalizer-stage">Evaluation rollout</span>
+                      <p>
+                        The policy output is first converted back to the original action scale, then the
+                        denormalized action is passed to the environment step.
+                      </p>
+                      <div class="normalizer-equation">
+                        $$
+                        a_{t:t+K}=\hat{a}_{t:t+K}\sigma_a+\mu_a.
+                        $$
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 id="policy-setup">Policy Setup</h3>
+                  <p>
+                    The implementation builds the neural network parameters $\theta$ for the action-chunk policy
+                    $\pi_\theta(A_t \mid o_t)$. In this implementation, behavior cloning is trained with two
+                    policy structures: a basic MSE policy and a flow matching policy. Both policies
+                    use an MLP-style backbone with <code>hidden_dims=(256, 256, 256)</code> and ReLU activations.
+                  </p>
+
+                  <div class="mlp-architecture" aria-label="MLP architecture with three hidden layers">
+                    <span class="mlp-node input-node">input</span>
+                    <span class="mlp-link"></span>
+                    <span class="mlp-node">Linear layer<br><em>Activation function</em></span>
+                    <span class="mlp-link"></span>
+                    <span class="mlp-node">Linear layer<br><em>Activation function</em></span>
+                    <span class="mlp-link"></span>
+                    <span class="mlp-node">Linear layer<br><em>Activation function</em></span>
+                    <span class="mlp-link"></span>
+                    <span class="mlp-node output-node">output</span>
+                  </div>
+
+                  <div class="policy-setup-grid">
+                    <div class="policy-setup-card">
+                      <span class="policy-card-title">MSE Policy</span>
+                      <p>
+                        Takes the normalized observation as input and outputs a flattened action chunk with
+                        dimension <code>chunk_size * action_dim</code>.
+                      </p>
+                      <div class="policy-signature">
+                        $\hat{o}_t \longrightarrow \hat{A}_t$
+                      </div>
+                    </div>
+                    <div class="policy-setup-card">
+                      <span class="policy-card-title">Flow Matching Policy</span>
+                      <p>
+                        Takes the normalized observation, a noisy action chunk, and a time value as input, then
+                        outputs a vector field with the same dimension as the action chunk.
+                      </p>
+                      <div class="policy-signature">
+                        $(\hat{o}_t, x_t, t) \longrightarrow v_\theta$
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 id="policy-training">Policy Training</h3>
+                  <section class="training-policy-section">
+                    <h4>1. MSE Policy</h4>
+                    <p>
+                      The MSE policy predicts the entire action chunk in a single forward pass. Given a batch of
+                      paired observations and expert chunks $(o_t^{(j)}, A_t^{(j)})$, the policy is trained to
+                      minimize the squared error between the expert chunk and the predicted chunk.
+                    </p>
+                    <div class="equation-box">
+                      $$
+                      \mathcal{L}_{\mathrm{MSE}}(\theta)
+                      =
+                      \frac{1}{B}
+                      \sum_{j=1}^{B}
+                      \left\|
+                      A_t^{(j)}-\pi_\theta(o_t^{(j)})
+                      \right\|_2^2.
+                      $$
+                    </div>
+                    <p>
+                      In the code, <code>action_chunk</code> is reshaped from
+                      <code>(B, K, action_dim)</code> to <code>(B, K * action_dim)</code>. The MLP output is
+                      compared against this flattened expert chunk using <code>torch.nn.functional.mse_loss</code>.
+                    </p>
+                  </section>
+
+                  <section class="training-policy-section">
+                    <h4>2. Flow Matching Policy</h4>
+                    <p>
+                      The flow matching policy does not directly predict the expert action chunk. Instead, it
+                      learns a vector field that moves a noisy action chunk toward the expert chunk. For each
+                      expert chunk $A_t^{(j)}$, the code samples noise $A_{t,0}^{(j)} \sim \mathcal{N}(0,I)$
+                      and a timestep $\tau^{(j)} \sim \mathcal{U}(0,1)$, then constructs an interpolated action
+                      chunk.
+                    </p>
+                    <div class="equation-box">
+                      $$
+                      A_{t,\tau}^{(j)}
+                      =
+                      \tau^{(j)}A_t^{(j)}
+                      +
+                      \left(1-\tau^{(j)}\right)A_{t,0}^{(j)}.
+                      $$
+                    </div>
+                    <p>
+                      The target velocity is the direction from the noise sample to the expert action chunk,
+                      $A_t^{(j)}-A_{t,0}^{(j)}$. The network receives the observation, interpolated chunk, and
+                      timestep, then predicts this velocity.
+                    </p>
+                    <div class="equation-box">
+                      $$
+                      \mathcal{L}_{\mathrm{FM}}(\theta)
+                      =
+                      \frac{1}{B}
+                      \sum_{j=1}^{B}
+                      \left\|
+                      v_\theta(o_t^{(j)}, A_{t,\tau}^{(j)}, \tau^{(j)})
+                      -
+                      \left(A_t^{(j)}-A_{t,0}^{(j)}\right)
+                      \right\|_2^2.
+                      $$
+                    </div>
+                    <p>
+                      In <code>compute_loss</code>, this corresponds to sampling <code>x_0</code> and
+                      <code>t</code>, forming <code>x_t = (1 - t) * x_0 + t * x_1</code>, and training the MLP
+                      to match <code>vel = x_1 - x_0</code>. For a more detailed explanation of flow matching,
+                      see the <a href="../../fql/fql.html">Flow Q-Learning</a> note.
+                    </p>
+                  </section>
+
+                  <h3 id="evaluation">Evaluation</h3>
+                  <p>
+                    During rollout, the learned policy is queried through <code>sample_actions</code>, which
+                    returns an action chunk $A_t=(a_t,\ldots,a_{t+K-1})$. The predicted chunk is denormalized
+                    and executed open-loop in the Push-T environment.
+                  </p>
+
+                  <section class="training-policy-section">
+                    <h4>1. MSE Policy</h4>
+                    <p>
+                      For the MSE policy, <code>sample_actions</code> performs a single forward pass through the
+                      MLP. The flattened output is reshaped into <code>(batch, chunk_size, action_dim)</code> and
+                      used as the predicted action chunk.
+                    </p>
+                    <div class="equation-box">
+                      $$
+                      \hat{A}_t = \pi_\theta(\hat{o}_t).
+                      $$
+                    </div>
+                  </section>
+
+                  <section class="training-policy-section">
+                    <h4>2. Flow Matching Policy</h4>
+                    <p>
+                      For the flow matching policy, <code>sample_actions</code> starts from Gaussian noise and
+                      repeatedly updates the action chunk using the learned vector field. With <code>num_steps</code>
+                      integration steps, the implementation uses Euler integration from $\tau=0$ to $\tau=1$.
+                    </p>
+                    <div class="equation-box">
+                      $$
+                      A_{t,0}\sim\mathcal{N}(0,I),
+                      \qquad
+                      A_{t,\tau+\frac{1}{n}}
+                      =
+                      A_{t,\tau}
+                      +
+                      \frac{1}{n}v_\theta(o_t,A_{t,\tau},\tau).
+                      $$
+                    </div>
+                    <p>
+                      After the final integration step, the generated chunk is reshaped into
+                      <code>(batch, chunk_size, action_dim)</code>. The evaluator then executes the actions in
+                      the environment and logs rollout reward and videos.
+                    </p>
+                  </section>
+
+                  <h3>Results</h3>
+                  <p>
+                    The training curves show an important difference between supervised prediction loss and
+                    rollout performance. The MSE policy reaches a lower training loss than the flow matching
+                    policy, but its mean reward is worse. This suggests that a lower imitation loss on expert
+                    action chunks does not necessarily translate into better closed-loop behavior in the
+                    environment.
+                  </p>
+
+                  <div class="result-media-grid">
+                    <figure>
+                      <img src="loss.png" alt="Training loss curves for MSE policy and flow matching policy.">
+                      <figcaption>Training loss. The MSE policy achieves the lower supervised loss.</figcaption>
+                    </figure>
+                    <figure>
+                      <img src="mean_reward.png" alt="Mean rollout reward curves for MSE policy and flow matching policy.">
+                      <figcaption>Mean rollout reward. The flow matching policy obtains better evaluation performance.</figcaption>
+                    </figure>
+                  </div>
+
+                  <p>
+                    The rollout videos make the same point qualitatively. Even though the MSE policy fits the
+                    expert chunks more closely under the training objective, the flow matching policy produces
+                    action chunks that lead to better behavior during environment interaction.
+                  </p>
+
+                  <div class="rollout-video-grid">
+                    <figure>
+                      <video autoplay controls muted loop playsinline preload="metadata">
+                        <source src="MSE_policy.mp4" type="video/mp4">
+                      </video>
+                      <figcaption>MSE policy rollout.</figcaption>
+                    </figure>
+                    <figure>
+                      <video autoplay controls muted loop playsinline preload="metadata">
+                        <source src="Flowmatching_policy.mp4" type="video/mp4">
+                      </video>
+                      <figcaption>Flow matching policy rollout.</figcaption>
+                    </figure>
+                  </div>
+
+                  
+                </article>
+              </td>
+            </tr>
+          </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+  </body>
+</html>
