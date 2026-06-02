@@ -459,6 +459,27 @@ span.highlight {
   padding: 1px 5px;
 }
 
+.code-block {
+  background: #fbf7f1;
+  border: 1px solid #eadfce;
+  border-radius: 8px;
+  margin: 16px 0;
+  overflow-x: auto;
+  padding: 14px 16px;
+}
+
+.code-block code {
+  background: transparent;
+  border: 0;
+  color: #2f2a24;
+  display: block;
+  font-family: Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  padding: 0;
+  white-space: pre;
+}
+
 .note-callout {
   background: #fbf7f1;
   border: 1px solid #eadfce;
@@ -537,6 +558,18 @@ span.highlight {
   line-height: 1;
   margin-bottom: 10px;
   text-transform: uppercase;
+}
+
+.result-inline {
+  background: #fbf7f1;
+  border: 1px solid #eadfce;
+  border-radius: 6px;
+  display: inline-block;
+  padding: 1px 6px;
+}
+
+.result-inline mjx-container {
+  margin: 0 !important;
 }
 
 .pipeline-strip {
@@ -879,6 +912,81 @@ span.highlight {
   margin-top: 8px;
 }
 
+.plot-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 18px 0 22px;
+}
+
+.plot-grid-single {
+  grid-template-columns: 1fr;
+}
+
+.plot-card {
+  overflow: hidden;
+}
+
+.plot-placeholder {
+  align-items: center;
+  aspect-ratio: 4 / 3;
+  background: #fbf7f1;
+  color: #8a663d;
+  display: flex;
+  font-size: 15px;
+  font-weight: 700;
+  justify-content: center;
+  padding: 18px;
+  text-align: center;
+}
+
+.plot-card img {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.comparison-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+  margin: 18px 0 22px;
+}
+
+.comparison-card {
+  border: 1px solid #e4ded6;
+  border-radius: 8px;
+  padding: 15px 16px;
+}
+
+.comparison-card-title {
+  color: #222;
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.comparison-card p {
+  color: #555;
+  line-height: 1.45;
+  margin: 0 0 12px;
+}
+
+.comparison-plot {
+  background: #fff;
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+}
+
+.comparison-plot img {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
 .note-figure {
   margin: 20px 0 26px;
 }
@@ -1012,6 +1120,7 @@ span.highlight {
     grid-template-columns: 1fr;
   }
 
+  .comparison-grid,
   .result-media-grid,
   .rollout-video-grid {
     grid-template-columns: 1fr;
