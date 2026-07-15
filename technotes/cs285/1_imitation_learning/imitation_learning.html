@@ -667,9 +667,13 @@
                   </div>
 
                   <p>
-                    The rollout videos make the same point qualitatively. Even though the MSE policy fits the
-                    expert chunks more closely under the training objective, the flow matching policy produces
-                    action chunks that lead to better behavior during environment interaction.
+                    The rollout videos show why this gap appears. In this task, the expert behavior is
+                    multimodal: from similar observations, valid demonstrations can move in different
+                    directions. The MSE policy collapses these alternatives toward their average, so it fails
+                    to commit to either direction and can get stuck instead of executing a coherent motion.
+                    Flow matching models a more expressive continuous action distribution, allowing the
+                    policy to represent the multimodal behavior and sample consistent action chunks that
+                    produce successful rollout behavior.
                   </p>
 
                   <div class="rollout-video-grid">

@@ -113,16 +113,28 @@
 
             <tr>
               <td style="padding:20px;width:30%;vertical-align:middle">
-                <div class="project-placeholder">TBD</div>
+                <div class="one project-video">
+                  <div class="two project-video">
+                    <video id="visuo-tactile-video" width="100%" autoplay muted loop playsinline preload="auto">
+                      <source src="videos/visuo-tactile-video.mp4" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </div>
               </td>
               <td style="padding:20px 20px 20px 5px;width:70%;vertical-align:middle">
                 <span class="papertitle">
-                  Visuo-tactile Residual RL for Precise insertion
+                  Visuo-tactile Imitation learning for Precise insertion
                 </span>
                 <br>
                   <strong>Seongsu Kim</strong>
                 <br>
-                TBD
+                <span class="venue">Participated in Automation World 2026</span>
+                <ul class="project-points">
+                  <li>Trained a Diffusion Policy for precise insertion on NIST Task Board 1.</li>
+                  <li>Demonstrated precise insertion of waterproof and peg components.</li>
+                  <li>Used <a href="https://xelarobotics.com">XELA Robotics</a> tactile sensors for precise insertion.</li>
+                </ul>
               </td>
             </tr>
 
@@ -147,10 +159,10 @@
                   Junbeom Lee,
                   Jun Moon
                 <br>
-                <span class="venue">Under review</span> <span class="note-status">(* equal contribution)</span>
+                <span class="venue">Under review, 2025</span> <span class="note-status">(* equal contribution)</span>
                 <ul class="project-points">
                   <li>Proposed GC-VLA, integrating goal-conditioned RL into VLA for long-horizon planning.</li>
-                  <li>Leveraged DROID and human datasets for goal-conditioned VLA pretraining.</li>
+                  <li>Built on the <a href="https://www.pi.website/blog/openpi"><span class="math-symbol">π<sub>0</sub></span></a> backbone and leveraged DROID and human datasets for goal-conditioned VLA pretraining.</li>
                   <li>Generated subgoal representations with a goal-conditioned VLM.</li>
                 </ul>
               </td>
@@ -172,12 +184,12 @@
                   Classify Objects with VLA Grasp Network
                 </span>
                 <br>
-                  <strong>Seongsu Kim</strong>,
-                  Geunha Kim,
+                  <strong>Seongsu Kim*</strong>,
+                  Geunha Kim*,
                   Dongbeom Kim,
                   Jun Moon
                 <br>
-                <span class="venue">International Conference on Control, Automation, and Systems (<a href="https://2025.iccas.org/">ICCAS</a>), 2025</span>
+                <span class="venue">International Conference on Control, Automation, and Systems (<a href="https://2025.iccas.org/">ICCAS</a>), 2025</span> <span class="note-status">(* equal contribution)</span>
                 <br>
                 <a href="papers/ICCAS_2025.pdf">paper</a>
                 <ul class="project-points">
@@ -206,6 +218,7 @@
                 <br>
                   <strong>Seongsu Kim</strong>
                 <br>
+                <span class="venue">Project, 2025</span>
                 <ul class="project-points">
                   <li>Performed dexterous hand teleoperation with Apple Vision Pro using <a href="https://github.com/Improbable-AI/VisionProTeleop">VisionProTeleop</a>.</li>
                   <li>Retargeted hand motions to the Allegro Hand using <a href="https://dingry.github.io/BunnyVisionPro/">BunnyVisionPro</a>.</li>
@@ -237,7 +250,7 @@
                 <br>
                 <a href="papers/ICTC_2024.pdf">paper</a>
                 <ul class="project-points">
-                  <li>Combined offline goal-conditioned RL with model-based RL for pixel-based control.</li>
+                  <li>Combined offline goal-conditioned RL with model-based RL.</li>
                   <li>Developed a pixel-based robotic manipulation environment in IsaacGym.</li>
                 </ul>
               </td>
@@ -278,6 +291,67 @@
             </tbody>
           </table>
 
+          <section class="open-source-section" aria-labelledby="open-source-title">
+            <div class="open-source-heading">
+              <h2 id="open-source-title">Open-Source Implementations</h2>
+            </div>
+
+            <div class="repository-grid">
+              <article class="repository-card">
+                <div class="repository-thumbnail cs285-thumbnail" aria-label="CS 285 Deep Reinforcement Learning, Fall 2023">
+                  <span class="cs285-code">CS 285</span>
+                  <span class="cs285-name">Deep Reinforcement Learning</span>
+                  <span class="cs285-term">UC Berkeley · Fall 2023</span>
+                </div>
+                <div class="repository-content">
+                  <h3>CS285 Deep Reinforcement Learning</h3>
+                  <p>
+                    Implementations of assignments from UC Berkeley CS285: Deep Reinforcement Learning.
+                  </p>
+                  <div class="repository-links">
+                    <a class="repository-link" href="https://github.com/sseongsukim/CS285">Code</a>
+                    <a class="repository-link repository-link-secondary" href="https://rail.eecs.berkeley.edu/deeprlcourse-fa23/">Course</a>
+                  </div>
+                </div>
+              </article>
+
+              <article class="repository-card">
+                <div class="repository-thumbnail ogbench-thumbnail">
+                  <img src="images/ogbench-env-teaser.png" alt="Overview of locomotion, manipulation, puzzle, and drawing environments in OGBench">
+                </div>
+                <div class="repository-content">
+                  <h3>Offline RL Algorithms</h3>
+                  <p>
+                    Implementations of offline RL and offline goal-conditioned RL algorithms using the <a href="https://seohong.me/projects/ogbench/">OGBench</a> benchmark.
+                  </p>
+                  <span class="repository-link repository-link-disabled">GitHub repository · TBD</span>
+                </div>
+              </article>
+
+              <article class="repository-card">
+                <div class="repository-thumbnail" aria-label="Project image placeholder">TBD</div>
+                <div class="repository-content">
+                  <h3>Imitation Learning with RL Fine-Tuning</h3>
+                  <p>
+                    A training framework for learning policies from demonstrations and improving them through reinforcement learning fine-tuning.
+                  </p>
+                  <span class="repository-link repository-link-disabled">GitHub repository · TBD</span>
+                </div>
+              </article>
+
+              <article class="repository-card">
+                <div class="repository-thumbnail" aria-label="Project image placeholder">TBD</div>
+                <div class="repository-content">
+                  <h3>Sim-to-Real Learning with SO-101</h3>
+                  <p>
+                    An ongoing project for developing RL-based manipulation policies in Isaac Lab and transferring them to the SO-101 robot through domain randomization and teacher–student learning.
+                  </p>
+                  <span class="repository-link repository-link-disabled">GitHub repository · TBD</span>
+                </div>
+              </article>
+            </div>
+          </section>
+
           <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
             <tbody>
             <tr>
@@ -295,5 +369,23 @@
         </td>
       </tr>
     </table>
+    <script>
+      const visuoTactileVideo = document.getElementById('visuo-tactile-video');
+
+      if (visuoTactileVideo) {
+        visuoTactileVideo.muted = true;
+        visuoTactileVideo.defaultMuted = true;
+
+        const playVisuoTactileVideo = () => {
+          visuoTactileVideo.play().catch(() => {});
+        };
+
+        visuoTactileVideo.addEventListener('canplay', playVisuoTactileVideo);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) playVisuoTactileVideo();
+        });
+        playVisuoTactileVideo();
+      }
+    </script>
   </body>
 </html>
