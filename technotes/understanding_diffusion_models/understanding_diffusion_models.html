@@ -1,0 +1,1039 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <title>Understanding Diffusion Models | TechNotes</title>
+
+    <meta name="author" content="Seongsu Kim">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="../../images/logo_su.png" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="../../stylesheet.css">
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  </head>
+
+  <body class="technote-page">
+    <table style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+      <tr style="padding:0px">
+        <td style="padding:0px">
+          <p class="technote-toplink">
+            <a href="../technotes.html">&larr; TechNotes</a>
+          </p>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr style="padding:0px">
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <p class="name" style="text-align:center;">Understanding Diffusion Models: A Unified Perspective</p>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:2.5%;width:100%;vertical-align:middle">
+                <article class="note-content">
+                  <div class="technote-card-tags">
+                    <span>Generative Models</span>
+                  </div>
+
+                  <div class="note-callout">
+                    <span class="note-callout-label">Paper</span>
+                    <p>
+                      Calvin Luo · arXiv · 2022
+                    </p>
+                  </div>
+
+                  <h2>Variational Diffusion Models</h2>
+
+                  <figure class="note-figure">
+                    <img src="figures/vdm.png" alt="A visual representation of a Variational Diffusion Model from the paper.">
+                    <figcaption>
+                      Figure from the paper: a Variational Diffusion Model with forward noising transitions
+                      $q(x_t\mid x_{t-1})$ and reverse denoising transitions $p_\theta(x_{t-1}\mid x_t)$.
+                    </figcaption>
+                  </figure>
+
+                  <p>
+                    Variational Diffusion Models (VDM) is simply a Markovian Hierarchical Variational
+                    Autoencoder with 3 key restrictions:
+                  </p>
+
+                  <ol>
+                    <li>
+                      The latent dimension is equal to the data dimension.
+                    </li>
+                    <li>
+                      The structure of the latent encoder at each timestep is not learned.
+                    </li>
+                    <li>
+                      The Gaussian parameters of the latent encoders vary over time in such a way that the
+                      distribution of the latent at final timestep $T$ is a standard Gaussian.
+                    </li>
+                  </ol>
+
+                  <h3>The latent dimension is equal to the data dimension</h3>
+
+                  <p>
+                    Represent both true data samples and latent variables as $x_t$, where $x_0$ is a true
+                    data sample and $t\in[1,T]$ represents a corresponding latent with hierarchy indexed by
+                    $t$.
+                  </p>
+
+                  <p>
+                    The VDM posterior can be written as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_{1:T}\mid x_0)=\prod_{t=1}^{T}q(x_t\mid x_{t-1})
+                    $$
+                  </div>
+
+                  <h3>The structure of the latent encoder at each timestep is not learned</h3>
+
+                  <p>
+                    It is a Gaussian distribution centered around the output of the previous timestep, where
+                    the mean and standard deviation can be set beforehand as hyperparameters, or learned as
+                    parameters.
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_t\mid x_{t-1})
+                    =
+                    \mathcal{N}(x_t;\sqrt{\alpha_t}x_{t-1},(1-\alpha_t)I)
+                    $$
+                  </div>
+
+                  <p>
+                    Note that $\alpha_t$ is a potentially learnable coefficient that can vary with the
+                    hierarchical depth $t$, for flexibility.
+                  </p>
+
+                  <h3>The final latent is a standard Gaussian</h3>
+
+                  <p>
+                    $\alpha_t$ evolves over time according to a fixed or learnable schedule structured such
+                    that the distribution of the final latent $p(x_T)$ is a standard Gaussian:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    x_T\sim\mathcal{N}(0,I)
+                    $$
+                  </div>
+
+                  <p>
+                    Collectively, what this set of assumptions describes is a steady noisification of an
+                    image input over time: progressively corrupt an image by adding Gaussian noise until
+                    eventually it becomes completely identical to pure Gaussian noise.
+                  </p>
+
+                  <p>
+                    The VDM can be optimized by maximizing the ELBO, which can be derived as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    p(x_{0:T})
+                    &=
+                    p(x_T)\prod_{t=1}^{T}p_\theta(x_{t-1}\mid x_t),
+                    \qquad
+                    p(x_T)=\mathcal{N}(x_T;0,I) \\
+                    \log p(x_0)
+                    &=
+                    \log\int p(x_{0:T})\,dx_{1:T} \\
+                    &=
+                    \log\int
+                    \frac{p(x_{0:T})q(x_{1:T}\mid x_0)}
+                    {q(x_{1:T}\mid x_0)}\,dx_{1:T} \\
+                    &=
+                    \log\mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[\frac{p(x_{0:T})}{q(x_{1:T}\mid x_0)}\right] \\
+                    &\ge
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log\frac{p(x_{0:T})}{q(x_{1:T}\mid x_0)}
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)\prod_{t=1}^{T}p_\theta(x_{t-1}\mid x_t)}
+                    {\prod_{t=1}^{T}q(x_t\mid x_{t-1})}
+                    \right].
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{
+                    p(x_T)p_\theta(x_0\mid x_1)
+                    \prod_{t=2}^{T}p_\theta(x_{t-1}\mid x_t)}
+                    {q(x_T\mid x_{T-1})
+                    \prod_{t=1}^{T-1}q(x_t\mid x_{t-1})}
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log p_\theta(x_0\mid x_1)
+                    +
+                    \log\frac{p(x_T)}{q(x_T\mid x_{T-1})}
+                    +
+                    \sum_{t=1}^{T-1}
+                    \log
+                    \frac{p_\theta(x_t\mid x_{t+1})}
+                    {q(x_t\mid x_{t-1})}
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_1\mid x_0)}
+                    [\log p_\theta(x_0\mid x_1)] \\
+                    &\quad -
+                    \mathbb{E}_{q(x_{T-1}\mid x_0)}
+                    \left[
+                    D_{\mathrm{KL}}(q(x_T\mid x_{T-1})\Vert p(x_T))
+                    \right] \\
+                    &\quad -
+                    \sum_{t=1}^{T-1}
+                    \mathbb{E}_{q(x_{t-1},x_{t+1}\mid x_0)}
+                    \left[
+                    D_{\mathrm{KL}}(q(x_t\mid x_{t-1})
+                    \Vert p_\theta(x_t\mid x_{t+1}))
+                    \right].
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    The terms can be interpreted as:
+                  </p>
+
+                  <ol>
+                    <li>
+                      <strong>Reconstruction Term</strong>: Predict the log probability of the original data
+                      sample given the first-step latent.
+                    </li>
+                    <li>
+                      <strong>Prior Matching Term</strong>: This term requires no optimization, as it has no
+                      trainable parameters; furthermore, as we have assumed a large enough $T$ such that the
+                      final distribution is Gaussian, this becomes zero.
+                    </li>
+                    <li>
+                      <strong>Consistency Term</strong>: It endeavors to make the distribution at $x_t$
+                      consistent from both forward and backward processes. A denoising step from a noisier
+                      image should match the corresponding noising step from a cleaner image, for every
+                      intermediate timestep.
+                    </li>
+                  </ol>
+
+                  <figure class="note-figure">
+                    <img src="figures/consistency_objective.png" alt="The consistency objective from the paper.">
+                    <figcaption>
+                      Figure from the paper: the consistency term matches the forward and backward
+                      distributions at each intermediate $x_t$.
+                    </figcaption>
+                  </figure>
+
+                  <p>
+                    This term is minimized when we train $p_\theta(x_t\mid x_{t+1})$ to match the Gaussian
+                    distribution $q(x_t\mid x_{t-1})$.
+                  </p>
+
+                  <p>
+                    Actually optimizing the ELBO using these terms might be suboptimal. The consistency
+                    term is computed as an expectation over two random variables $\{x_{t-1},x_{t+1}\}$ for
+                    every timestep, so the variance of its Monte Carlo estimate could potentially be higher
+                    than a term that is estimated using only one random variable per timestep.
+                  </p>
+
+                  <p>
+                    Rewrite encoder transitions as $q(x_t\mid x_{t-1})=q(x_t\mid x_{t-1},x_0)$, where the
+                    extra conditioning term is superfluous due to the Markov property:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_t\mid x_{t-1},x_0)
+                    =
+                    \frac{
+                    q(x_{t-1}\mid x_t,x_0)q(x_t\mid x_0)
+                    }{
+                    q(x_{t-1}\mid x_0)
+                    }.
+                    $$
+                  </div>
+
+                  <p>
+                    Retry the derivation resuming from the ELBO:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \log p(x_0)
+                    \ge\;&
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)\prod_{t=1}^{T}p_\theta(x_{t-1}\mid x_t)}
+                    {\prod_{t=1}^{T}q(x_t\mid x_{t-1})}
+                    \right].
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)p_\theta(x_0\mid x_1)
+                    \prod_{t=2}^{T}p_\theta(x_{t-1}\mid x_t)}
+                    {q(x_1\mid x_0)\prod_{t=2}^{T}q(x_t\mid x_{t-1},x_0)}
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)p_\theta(x_0\mid x_1)}
+                    {q(x_1\mid x_0)}
+                    +
+                    \log
+                    \prod_{t=2}^{T}
+                    \frac{
+                    p_\theta(x_{t-1}\mid x_t)}
+                    {
+                    \frac{q(x_{t-1}\mid x_t,x_0)q(x_t\mid x_0)}
+                    {q(x_{t-1}\mid x_0)}
+                    }
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)p_\theta(x_0\mid x_1)}
+                    {q(x_1\mid x_0)}
+                    +
+                    \log
+                    \frac{q(x_1\mid x_0)}{q(x_T\mid x_0)}
+                    +
+                    \log
+                    \prod_{t=2}^{T}
+                    \frac{p_\theta(x_{t-1}\mid x_t)}
+                    {q(x_{t-1}\mid x_t,x_0)}
+                    \right] \\
+                    &=
+                    \mathbb{E}_{q(x_{1:T}\mid x_0)}
+                    \left[
+                    \log
+                    \frac{p(x_T)p_\theta(x_0\mid x_1)}
+                    {q(x_T\mid x_0)}
+                    +
+                    \sum_{t=2}^{T}
+                    \log
+                    \frac{p_\theta(x_{t-1}\mid x_t)}
+                    {q(x_{t-1}\mid x_t,x_0)}
+                    \right].
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \log p(x_0)
+                    \ge\;&
+                    \mathbb{E}_{q(x_1\mid x_0)}
+                    [\log p_\theta(x_0\mid x_1)]
+                    -
+                    D_{\mathrm{KL}}(q(x_T\mid x_0)\Vert p(x_T)) \\
+                    &-
+                    \sum_{t=2}^{T}
+                    \mathbb{E}_{q(x_t\mid x_0)}
+                    \left[
+                    D_{\mathrm{KL}}(q(x_{t-1}\mid x_t,x_0)
+                    \Vert p_\theta(x_{t-1}\mid x_t))
+                    \right].
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    The terms in this form are:
+                  </p>
+
+                  <ol>
+                    <li>
+                      <strong>Reconstruction Term</strong>: This term can be approximated and optimized
+                      using Monte Carlo estimation.
+                    </li>
+                    <li>
+                      <strong>Prior matching term</strong>: It has no trainable parameters, and is also equal
+                      to zero under our assumptions.
+                    </li>
+                    <li>
+                      <strong>Denoising matching term</strong>: We learn desired denoising transition step
+                      $p_\theta(x_{t-1}\mid x_t)$ as an approximation to tractable, ground-truth denoising
+                      transition step $q(x_{t-1}\mid x_t,x_0)$.
+                    </li>
+                  </ol>
+
+                  <figure class="note-figure">
+                    <img src="figures/denoising_matching.png" alt="The denoising matching objective from the paper.">
+                    <figcaption>
+                      Figure from the paper: the lower-variance objective matches $p_\theta(x_{t-1}\mid x_t)$
+                      to $q(x_{t-1}\mid x_t,x_0)$.
+                    </figcaption>
+                  </figure>
+
+                  <p>
+                    The KL Divergence term
+                    $D_{\mathrm{KL}}(q(x_{t-1}\mid x_t,x_0)\Vert p_\theta(x_{t-1}\mid x_t))$
+                    is difficult to minimize for arbitrary posteriors. In a VDM, we leverage the Gaussian
+                    transition assumption by Bayes rule:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_{t-1}\mid x_t,x_0)
+                    =
+                    \frac{q(x_t\mid x_{t-1},x_0)q(x_{t-1}\mid x_0)}
+                    {q(x_t\mid x_0)}.
+                    $$
+                  </div>
+
+                  <p>
+                    As we already know that
+                    $q(x_t\mid x_{t-1},x_0)=q(x_t\mid x_{t-1})
+                    =\mathcal{N}(x_t;\sqrt{\alpha_t}x_{t-1},(1-\alpha_t)I)$,
+                    what remains is deriving the forms of $q(x_t\mid x_0)$ and
+                    $q(x_{t-1}\mid x_0)$.
+                  </p>
+
+                  <h2>Reparameterization Trick</h2>
+
+                  <div class="equation-box">
+                    $$
+                    x_t=\sqrt{\alpha_t}x_{t-1}+\sqrt{1-\alpha_t}\epsilon,
+                    \qquad
+                    \epsilon\sim\mathcal{N}(0,I)
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    x_{t-1}=\sqrt{\alpha_{t-1}}x_{t-2}
+                    +\sqrt{1-\alpha_{t-1}}\epsilon,
+                    \qquad
+                    \epsilon\sim\mathcal{N}(0,I)
+                    $$
+                  </div>
+
+                  <p>
+                    The form of $q(x_t\mid x_0)$ can be recursively derived through repeated applications
+                    of the reparameterization trick. Suppose that we have access to $2T$ random noise
+                    variables $\{\epsilon_t^*,\epsilon_t\}_{t=0}^{T}\overset{\mathrm{i.i.d.}}{\sim}
+                    \mathcal{N}(0,I)$. Then, for an arbitrary sample $x_t\sim q(x_t\mid x_0)$:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    x_t
+                    &=
+                    \sqrt{\alpha_t}x_{t-1}
+                    +\sqrt{1-\alpha_t}\epsilon_{t-1}^* \\
+                    &=
+                    \sqrt{\alpha_t}
+                    \left(
+                    \sqrt{\alpha_{t-1}}x_{t-2}
+                    +\sqrt{1-\alpha_{t-1}}\epsilon_{t-2}^*
+                    \right)
+                    +\sqrt{1-\alpha_t}\epsilon_{t-1}^* \\
+                    &=
+                    \sqrt{\alpha_t\alpha_{t-1}}x_{t-2}
+                    +\sqrt{\alpha_t-\alpha_t\alpha_{t-1}}\epsilon_{t-2}^*
+                    +\sqrt{1-\alpha_t}\epsilon_{t-1}^* \\
+                    &=
+                    \sqrt{\alpha_t\alpha_{t-1}}x_{t-2}
+                    +\sqrt{1-\alpha_t\alpha_{t-1}}\epsilon_{t-2} \\
+                    &=
+                    \cdots \\
+                    &=
+                    \sqrt{\prod_{i=1}^{t}\alpha_i}x_0
+                    +
+                    \sqrt{1-\prod_{i=1}^{t}\alpha_i}\epsilon_0 \\
+                    &=
+                    \sqrt{\bar{\alpha}_t}x_0
+                    +\sqrt{1-\bar{\alpha}_t}\epsilon_0.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    Therefore:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_t\mid x_0)
+                    =
+                    \mathcal{N}(x_t;\sqrt{\bar{\alpha}_t}x_0,(1-\bar{\alpha}_t)I).
+                    $$
+                  </div>
+
+                  <p>
+                    Now, knowing the forms of both $q(x_t\mid x_0)$ and $q(x_{t-1}\mid x_0)$, we can
+                    proceed to calculate the form of $q(x_{t-1}\mid x_t,x_0)$ by substituting into the Bayes
+                    rule expansion:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    q(x_{t-1}\mid x_t,x_0)
+                    &=
+                    \frac{q(x_t\mid x_{t-1},x_0)q(x_{t-1}\mid x_0)}
+                    {q(x_t\mid x_0)} \\
+                    &=
+                    \frac{
+                    \mathcal{N}(x_t;\sqrt{\alpha_t}x_{t-1},(1-\alpha_t)I)
+                    \mathcal{N}(x_{t-1};\sqrt{\bar{\alpha}_{t-1}}x_0,
+                    (1-\bar{\alpha}_{t-1})I)
+                    }{
+                    \mathcal{N}(x_t;\sqrt{\bar{\alpha}_t}x_0,(1-\bar{\alpha}_t)I)
+                    } \\
+                    &\propto
+                    \exp\left\{
+                    -\frac{1}{2}
+                    \left[
+                    \frac{(x_t-\sqrt{\alpha_t}x_{t-1})^2}{1-\alpha_t}
+                    +
+                    \frac{(x_{t-1}-\sqrt{\bar{\alpha}_{t-1}}x_0)^2}
+                    {1-\bar{\alpha}_{t-1}}
+                    -
+                    \frac{(x_t-\sqrt{\bar{\alpha}_t}x_0)^2}
+                    {1-\bar{\alpha}_t}
+                    \right]
+                    \right\} \\
+                    &\propto
+                    \exp\left\{
+                    -\frac{1}{2}
+                    \left[
+                    \left(
+                    \frac{\alpha_t}{1-\alpha_t}
+                    +
+                    \frac{1}{1-\bar{\alpha}_{t-1}}
+                    \right)x_{t-1}^2
+                    -
+                    2\left(
+                    \frac{\sqrt{\alpha_t}x_t}{1-\alpha_t}
+                    +
+                    \frac{\sqrt{\bar{\alpha}_{t-1}}x_0}
+                    {1-\bar{\alpha}_{t-1}}
+                    \right)x_{t-1}
+                    \right]
+                    \right\} \\
+                    &\propto
+                    \mathcal{N}
+                    \left(
+                    x_{t-1};
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +\sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0
+                    }{1-\bar{\alpha}_t},
+                    \frac{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}
+                    {1-\bar{\alpha}_t}I
+                    \right).
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    Therefore, $q(x_{t-1}\mid x_t,x_0)$ is normally distributed with mean
+                    $\mu_q(x_t,x_0)$ that is a function of $x_t$ and $x_0$, and the variance
+                    $\Sigma_q(t)$ as a function of $\alpha$ coefficients:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \mu_q(x_t,x_0)
+                    =
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +\sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0
+                    }{1-\bar{\alpha}_t},
+                    \qquad
+                    \Sigma_q(t)
+                    =
+                    \sigma_q^2(t)I
+                    $$
+                    $$
+                    \sigma_q^2(t)
+                    =
+                    \frac{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}
+                    {1-\bar{\alpha}_t}.
+                    $$
+                  </div>
+
+                  <p>
+                    In order to match approximate denoising transition step
+                    $p_\theta(x_{t-1}\mid x_t)$ to ground-truth denoising transition step
+                    $q(x_{t-1}\mid x_t,x_0)$ as closely as possible, we can also model it as a Gaussian.
+                    Furthermore, as all $\alpha$ terms are known to be frozen at each timestep, we can
+                    immediately construct the variance of the approximate denoising transition step to also
+                    be $\Sigma_q(t)$.
+                  </p>
+
+                  <p>
+                    We must parameterize its mean $\mu_\theta(x_t,t)$ as a function of $x_t$, since
+                    $p_\theta(x_{t-1}\mid x_t)$ does not condition on $x_0$.
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    p_\theta(x_{t-1}\mid x_t)
+                    =
+                    \mathcal{N}(x_{t-1};\mu_\theta(x_t,t),\Sigma_q(t)).
+                    $$
+                  </div>
+
+                  <p>
+                    In equation 24, where we can set the variance of the two Gaussians to match exactly,
+                    optimizing the KL Divergence term reduces to minimizing the difference between the means
+                    of the two distributions:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    D_{\mathrm{KL}}
+                    (\mathcal{N}(x;\mu_x,\Sigma_x)\Vert
+                    \mathcal{N}(y;\mu_y,\Sigma_y))
+                    =
+                    \frac{1}{2}
+                    \left[
+                    \log\frac{|\Sigma_y|}{|\Sigma_x|}
+                    -d
+                    +\mathrm{tr}(\Sigma_y^{-1}\Sigma_x)
+                    +(\mu_y-\mu_x)^T\Sigma_y^{-1}(\mu_y-\mu_x)
+                    \right].
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \arg\min_\theta
+                    D_{\mathrm{KL}}
+                    (q(x_{t-1}\mid x_t,x_0)\Vert p_\theta(x_{t-1}\mid x_t))
+                    &=
+                    \arg\min_\theta
+                    D_{\mathrm{KL}}
+                    (\mathcal{N}(x_{t-1};\mu_q,\Sigma_q(t))
+                    \Vert
+                    \mathcal{N}(x_{t-1};\mu_\theta,\Sigma_q(t))) \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2}
+                    (\mu_\theta-\mu_q)^T\Sigma_q^{-1}(t)(\mu_\theta-\mu_q) \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \|\mu_\theta-\mu_q\|_2^2.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    As $\mu_\theta(x_t,t)$ also conditions on $x_t$, we can match $\mu_q(x_t,x_0)$ closely
+                    by setting it to the following form:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \mu_\theta(x_t,t)
+                    =
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +\sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)\hat{x}_\theta(x_t,t)
+                    }{1-\bar{\alpha}_t},
+                    $$
+                  </div>
+
+                  <p>
+                    where $\hat{x}_\theta(x_t,t)$ is parameterized by a neural network that seeks to predict
+                    $x_0$ from noisy image $x_t$ and time index $t$. Then, the optimization problem
+                    simplifies to:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \arg\min_\theta
+                    D_{\mathrm{KL}}
+                    (q(x_{t-1}\mid x_t,x_0)\Vert p_\theta(x_{t-1}\mid x_t))
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \left\|
+                    \frac{\sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)}
+                    {1-\bar{\alpha}_t}
+                    (\hat{x}_\theta(x_t,t)-x_0)
+                    \right\|_2^2 \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \frac{\bar{\alpha}_{t-1}(1-\alpha_t)^2}
+                    {(1-\bar{\alpha}_t)^2}
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    Therefore, optimizing a VDM boils down to learning a neural network to predict the
+                    original ground truth image.
+                  </p>
+
+                  <h2>Learning Diffusion Noise Parameters</h2>
+
+                  <p>
+                    By substituting our variance equation from Equation 43 into our derived per-timestep
+                    object in Equation 56:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \sigma_q^2(t)=
+                    \frac{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}
+                    {1-\bar{\alpha}_t}
+                    $$
+                  </div>
+
+                  <p>
+                    Then:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    &\frac{1}{2\sigma_q^2(t)}
+                    \frac{\bar{\alpha}_{t-1}(1-\alpha_t)^2}
+                    {(1-\bar{\alpha}_t)^2}
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2 \\
+                    &=
+                    \frac{1}{2}
+                    \frac{1-\bar{\alpha}_t}
+                    {(1-\alpha_t)(1-\bar{\alpha}_{t-1})}
+                    \frac{\bar{\alpha}_{t-1}(1-\alpha_t)^2}
+                    {(1-\bar{\alpha}_t)^2}
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2 \\
+                    &=
+                    \frac{1}{2}
+                    \frac{\bar{\alpha}_{t-1}(1-\alpha_t)}
+                    {(1-\bar{\alpha}_{t-1})(1-\bar{\alpha}_t)}
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2 \\
+                    &=
+                    \frac{1}{2}
+                    \left(
+                    \frac{\bar{\alpha}_{t-1}}{1-\bar{\alpha}_{t-1}}
+                    -
+                    \frac{\bar{\alpha}_t}{1-\bar{\alpha}_t}
+                    \right)
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    $q(x_t\mid x_0)$ is a Gaussian form:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    q(x_t\mid x_0)
+                    =
+                    \mathcal{N}(x_t;\sqrt{\bar{\alpha}_t}x_0,(1-\bar{\alpha}_t)I).
+                    $$
+                  </div>
+
+                  <p>
+                    Then, following the definition of the signal-to-noise ratio (SNR) as
+                    $\mathrm{SNR}=\mu^2/\sigma^2$, we can write the SNR at each timestep $t$ as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \mathrm{SNR}(t)=\frac{\bar{\alpha}_t}{1-\bar{\alpha}_t}.
+                    $$
+                  </div>
+
+                  <p>
+                    Then, our derived equation can be simplified as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \frac{1}{2\sigma_q^2(t)}
+                    \frac{\bar{\alpha}_{t-1}(1-\alpha_t)^2}
+                    {(1-\bar{\alpha}_t)^2}
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2
+                    =
+                    \frac{1}{2}
+                    (\mathrm{SNR}(t-1)-\mathrm{SNR}(t))
+                    \|\hat{x}_\theta(x_t,t)-x_0\|_2^2.
+                    $$
+                  </div>
+
+                  <p>
+                    The SNR represents the ratio between the original signal and the amount of noise present:
+                    high SNR means more signal and low SNR means more noise. In diffusion model, we require
+                    the SNR to monotonically decrease as time $t$ increase.
+                  </p>
+
+                  <p>
+                    Following the simplification of the objective, we can directly parameterize the SNR at
+                    each timestep using a neural network, and learn it jointly along with the diffusion model.
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \mathrm{SNR}(t)=\exp(-\omega_\eta(t)),
+                    $$
+                  </div>
+
+                  <p>
+                    where $\omega_\eta(t)$ is modeled as a monotonically increasing neural network with
+                    parameters $\eta$.
+                  </p>
+
+                  <p>
+                    By combining our parameterization of SNR, we can also explicitly derive elegant forms for
+                    the value of $\bar{\alpha}_t$ as well as for the value of $1-\bar{\alpha}_t$:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \frac{\bar{\alpha}_t}{1-\bar{\alpha}_t}
+                    =
+                    \exp(-\omega_\eta(t))
+                    $$
+                    $$
+                    \therefore\quad
+                    \bar{\alpha}_t=\mathrm{sigmoid}(-\omega_\eta(t)),
+                    \qquad
+                    1-\bar{\alpha}_t=\mathrm{sigmoid}(\omega_\eta(t)).
+                    $$
+                  </div>
+
+                  <p>
+                    These terms are necessary for a variety of computations.
+                  </p>
+
+                  <h2>Three Equivalent Interpretations</h2>
+
+                  <p>
+                    A VDM can be trained by simply learning a neural network to predict the original natural
+                    image $x_0$ from an arbitrary noisy version $x_t$ and its time index $t$.
+                  </p>
+
+                  <p>
+                    Firstly, we can utilize the reparameterization trick. In our derivation of the form of
+                    $q(x_t\mid x_0)$, we can rearrange:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    x_t=\sqrt{\bar{\alpha}_t}x_0+\sqrt{1-\bar{\alpha}_t}\epsilon_0
+                    $$
+                    $$
+                    \therefore\quad
+                    x_0=
+                    \frac{x_t-\sqrt{1-\bar{\alpha}_t}\epsilon_0}
+                    {\sqrt{\bar{\alpha}_t}}.
+                    $$
+                  </div>
+
+                  <p>
+                    Therefore, we can set our approximate denoising transition mean $\mu_\theta(x_t,t)$ as:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \mu_q(x_t,x_0)
+                    &=
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +\sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0}
+                    {1-\bar{\alpha}_t} \\
+                    &=
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +
+                    \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)
+                    \frac{x_t-\sqrt{1-\bar{\alpha}_t}\epsilon_0}
+                    {\sqrt{\bar{\alpha}_t}}
+                    }
+                    {1-\bar{\alpha}_t} \\
+                    &=
+                    \frac{
+                    \sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t
+                    +(1-\alpha_t)
+                    \frac{x_t-\sqrt{1-\bar{\alpha}_t}\epsilon_0}
+                    {\sqrt{\alpha_t}}
+                    }
+                    {1-\bar{\alpha}_t} \\
+                    &=
+                    \frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})}
+                    {1-\bar{\alpha}_t}x_t
+                    +
+                    \frac{1-\alpha_t}
+                    {(1-\bar{\alpha}_t)\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{(1-\alpha_t)\sqrt{1-\bar{\alpha}_t}}
+                    {(1-\bar{\alpha}_t)\sqrt{\alpha_t}}\epsilon_0 \\
+                    &=
+                    \left(
+                    \frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})}
+                    {1-\bar{\alpha}_t}
+                    +
+                    \frac{1-\alpha_t}
+                    {(1-\bar{\alpha}_t)\sqrt{\alpha_t}}
+                    \right)x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}\epsilon_0 \\
+                    &=
+                    \frac{
+                    \alpha_t(1-\bar{\alpha}_{t-1})+1-\alpha_t}
+                    {(1-\bar{\alpha}_t)\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}\epsilon_0 \\
+                    &=
+                    \frac{
+                    1-\bar{\alpha}_t}
+                    {(1-\bar{\alpha}_t)\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}\epsilon_0 \\
+                    &=
+                    \frac{1}{\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}
+                    \epsilon_0.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <div class="equation-box">
+                    $$
+                    \mu_\theta(x_t,t)
+                    =
+                    \frac{1}{\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}
+                    \hat{\epsilon}_\theta(x_t,t).
+                    $$
+                  </div>
+
+                  <p>
+                    and the corresponding optimization problem becomes:
+                  </p>
+
+                  <div class="equation-box">
+                    $$
+                    \begin{aligned}
+                    \arg\min_\theta
+                    D_{\mathrm{KL}}
+                    (q(x_{t-1}\mid x_t,x_0)\Vert p_\theta(x_{t-1}\mid x_t))
+                    &=
+                    \arg\min_\theta
+                    D_{\mathrm{KL}}
+                    (\mathcal{N}(x_{t-1};\mu_q,\Sigma_q(t))
+                    \Vert
+                    \mathcal{N}(x_{t-1};\mu_\theta,\Sigma_q(t))) \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \left\|
+                    \frac{1}{\sqrt{\alpha_t}}x_t
+                    -
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}
+                    \hat{\epsilon}_\theta(x_t,t)
+                    -
+                    \frac{1}{\sqrt{\alpha_t}}x_t
+                    +
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}
+                    \epsilon_0
+                    \right\|_2^2 \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \left\|
+                    \frac{1-\alpha_t}
+                    {\sqrt{1-\bar{\alpha}_t}\sqrt{\alpha_t}}
+                    (\epsilon_0-\hat{\epsilon}_\theta(x_t,t))
+                    \right\|_2^2 \\
+                    &=
+                    \arg\min_\theta
+                    \frac{1}{2\sigma_q^2(t)}
+                    \frac{(1-\alpha_t)^2}
+                    {(1-\bar{\alpha}_t)\alpha_t}
+                    \|\epsilon_0-\hat{\epsilon}_\theta(x_t,t)\|_2^2.
+                    \end{aligned}
+                    $$
+                  </div>
+
+                  <p>
+                    Here, $\hat{\epsilon}_\theta(x_t,t)$ is a neural network that learns to predict the source
+                    noise $\epsilon_0\sim\mathcal{N}(0,I)$ that determines $x_t$ from $x_0$. Therefore,
+                    learning a VDM by predicting the original image $x_0$ is equivalent to learning to
+                    predict the noise $\epsilon$.
+                  </p>
+                </article>
+              </td>
+            </tr>
+          </tbody></table>
+
+          <table style="width:100%;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;"><tbody>
+            <tr>
+              <td style="padding:0px">
+                <br>
+                <p style="text-align:right;font-size:small;">
+                  Website template from <a href="https://github.com/jonbarron/jonbarron_website">Jon Barron</a>
+                </p>
+              </td>
+            </tr>
+          </tbody></table>
+
+        </td>
+      </tr>
+    </tbody></table>
+  </body>
+</html>
