@@ -1,2 +1,3 @@
 technotes/understanding_diffusion_models/*.pdf
 technotes/
+.DS_Store
