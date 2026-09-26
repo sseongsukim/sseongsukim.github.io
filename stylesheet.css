@@ -1192,6 +1192,20 @@ span.highlight {
   width: 100%;
 }
 
+.image-thumbnail {
+  background: #fff;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.image-thumbnail img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+}
+
 .repository-content {
   display: flex;
   flex: 1;
