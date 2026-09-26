@@ -1201,7 +1201,7 @@ span.highlight {
 .image-thumbnail img {
   display: block;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   width: 100%;
 }
